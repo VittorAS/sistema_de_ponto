@@ -1,0 +1,13 @@
+package com.looptech.electronic_point_app;
+
+import org.junit.jupiter.api.Test;
+import org.springframework.boot.test.context.SpringBootTest;
+
+@SpringBootTest
+class ElectronicPointAppApplicationTests {
+
+	@Test
+	void contextLoads() {
+	}
+
+}
