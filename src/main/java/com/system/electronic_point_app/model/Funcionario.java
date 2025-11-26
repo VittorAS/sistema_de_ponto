@@ -1,4 +1,4 @@
-package com.looptech.electronic_point_app.entities;
+package com.system.electronic_point_app.model;
 
 
 import jakarta.persistence.*;
@@ -11,11 +11,19 @@ import java.util.List;
 public class Funcionario {
     @Id
     @GeneratedValue (strategy=GenerationType.IDENTITY)
-    private Long id;
+    private Long funcionarioId;
+
     private String nome;
+
+    @Column(unique=true)
     private String cpf;
+
+    private String email;
+
     private String cargo;
 
-    @OneToMany(mappedBy = "funcionario")
+    private String telefone;
+
+    @OneToMany(mappedBy = "funcionario", cascade = CascadeType.ALL)
     private List<RegistroPonto> registros;
 }
