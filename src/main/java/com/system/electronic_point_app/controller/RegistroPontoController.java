@@ -1,5 +1,6 @@
 package com.system.electronic_point_app.controller;
 
+import com.system.electronic_point_app.dto.EspelhoPontoDTO;
 import com.system.electronic_point_app.enums.TipoRegistro;
 import com.system.electronic_point_app.model.Funcionario;
 import com.system.electronic_point_app.model.RegistroPonto;
@@ -20,5 +21,11 @@ public class RegistroPontoController {
     @PostMapping
     public RegistroPonto cadastrar(@RequestParam Long funcionarioId, @RequestParam TipoRegistro tipoRegistro){
         return registroPontoService.registrar(funcionarioId, tipoRegistro);
+    }
+
+// Método GET do Controller
+    @GetMapping("/espelho/{funcionarioId}")
+    public EspelhoPontoDTO gerarEspelho(@PathVariable Long funcionarioId) {
+        return registroPontoService.gerarEspelho(funcionarioId);
     }
 }

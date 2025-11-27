@@ -1,6 +1,8 @@
 package com.system.electronic_point_app.service;
 
 
+import com.system.electronic_point_app.dto.EspelhoPontoDTO;
+import com.system.electronic_point_app.dto.RegistroDTO;
 import com.system.electronic_point_app.enums.TipoRegistro;
 import com.system.electronic_point_app.model.Funcionario;
 import com.system.electronic_point_app.model.RegistroPonto;
@@ -9,7 +11,9 @@ import com.system.electronic_point_app.repository.RegistroPontoRepository;
 import org.springframework.stereotype.Service;
 
 import java.time.LocalDateTime;
+import java.util.List;
 import java.util.Optional;
+import java.util.stream.Collectors;
 
 @Service
 public class RegistroPontoService {
@@ -50,6 +54,21 @@ public class RegistroPontoService {
 
 //  Salva no banco as informações do ponto
         return  registroPontoRepository.save(registroPonto);
+    }
+
+    public EspelhoPontoDTO gerarEspelho(Long funcionarioId){
+//  Busca de Funcionário no Banco, caso não encontre, lança a exceção
+
+        Funcionario funcionario =  funcionarioRepository.findById(funcionarioId)
+                .orElseThrow(() -> new RuntimeException("Funcionário não encontrado com o Id: " + funcionarioId));
+
+        List<RegistroPonto> registro = registroPontoRepository.findByFuncionarioIdOrderByDataHoraAsc(funcionarioId);
+
+        List<RegistroDTO> registrosDTO = registro.stream()
+                .map(r ->new RegistroDTO(r.getDataHora(), r.getTipo()))
+                .collect(Collectors.toList());
+
+        return new EspelhoPontoDTO(funcionario.getNome(), funcionario.getCpf(), funcionario.getEmail(), funcionario.getCargo(), funcionario.getTelefone(), registrosDTO);
     }
 
 
