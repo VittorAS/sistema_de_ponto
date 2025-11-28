@@ -12,7 +12,7 @@ public class RegistroPonto {
 
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
-    private int registroPontoId;
+    private int id;
 
     private LocalDateTime dataHora;
 

@@ -8,6 +8,7 @@ public record EspelhoPontoDTO(
         String email,
         String cargo,
         String telefone,
-        List<RegistroDTO> registros
+        List<RegistroDTO> registros,
+        String totalHoras
 ) {
 }

@@ -10,6 +10,7 @@ import com.system.electronic_point_app.repository.FuncionarioRepository;
 import com.system.electronic_point_app.repository.RegistroPontoRepository;
 import org.springframework.stereotype.Service;
 
+import java.time.Duration;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
@@ -21,6 +22,7 @@ public class RegistroPontoService {
     private final FuncionarioRepository funcionarioRepository;
 
 //  Construtor
+
     public RegistroPontoService(RegistroPontoRepository registroPontoRepository,  FuncionarioRepository funcionarioRepository) {
         this.registroPontoRepository = registroPontoRepository;
         this.funcionarioRepository = funcionarioRepository;
@@ -28,15 +30,19 @@ public class RegistroPontoService {
 
 
 //  Método de Registro de Ponto usando o Id do Funcionário e o Tipo do Registro
+
     public RegistroPonto registrar(Long funcionarioId, TipoRegistro tipo){
 
 //  Busca de Funcionário no Banco, caso não encontre, lança a exceção
+
         Funcionario funcionario =  funcionarioRepository.findById(funcionarioId).orElseThrow(() -> new RuntimeException("Funcionário não encontrado com o Id: " + funcionarioId));
 
 //  Busca o ÚLTIMO registro do Fucionário
+
         Optional<RegistroPonto> ultimoRegistroOpt = registroPontoRepository.buscarUltimoRegistro(funcionarioId);
 
 //  Valida as Regras de Negócio (O funcionário não pode Registrar o ponto de Saída sem Registrar a Entrada
+
         if(ultimoRegistroOpt.isPresent()){
             RegistroPonto ultimoRegistro = ultimoRegistroOpt.get();
             validarSequencia(ultimoRegistro.getTipo(), tipo);
@@ -47,16 +53,19 @@ public class RegistroPontoService {
         }
 
 //  Objeto do Ponto, no caso, o horário do servidor, o tipo de ponto e o funcionário que está realizando a operação
+
         RegistroPonto registroPonto = new RegistroPonto();
         registroPonto.setDataHora(LocalDateTime.now());
         registroPonto.setTipo(tipo);
         registroPonto.setFuncionario(funcionario);
 
 //  Salva no banco as informações do ponto
+
         return  registroPontoRepository.save(registroPonto);
     }
 
     public EspelhoPontoDTO gerarEspelho(Long funcionarioId){
+
 //  Busca de Funcionário no Banco, caso não encontre, lança a exceção
 
         Funcionario funcionario =  funcionarioRepository.findById(funcionarioId)
@@ -64,23 +73,43 @@ public class RegistroPontoService {
 
         List<RegistroPonto> registro = registroPontoRepository.findByFuncionarioIdOrderByDataHoraAsc(funcionarioId);
 
+//  Lógica para a contagem de horas!
+
+        Duration totalHoras = Duration.ZERO;
+        for (int i = 0; i < registro.size() - 1; i++) {
+            RegistroPonto atual = registro.get(i);
+            RegistroPonto proximo = registro.get(i+1);
+
+            if (atual.getTipo() == TipoRegistro.ENTRADA && proximo.getTipo() != TipoRegistro.ENTRADA) {
+                Duration diferenca = Duration.between(atual.getDataHora(), proximo.getDataHora());
+                totalHoras = totalHoras.plus(diferenca);
+            }
+        }
+
+        long horas = totalHoras.toHours();
+        long minutos = totalHoras.toMinutesPart();
+        String totalFormatado = String.format("%02d:%02d", horas, minutos);
+
         List<RegistroDTO> registrosDTO = registro.stream()
-                .map(r ->new RegistroDTO(r.getDataHora(), r.getTipo()))
+                .map(r -> new RegistroDTO(r.getDataHora(), r.getTipo()))
                 .collect(Collectors.toList());
 
-        return new EspelhoPontoDTO(funcionario.getNome(), funcionario.getCpf(), funcionario.getEmail(), funcionario.getCargo(), funcionario.getTelefone(), registrosDTO);
+        return new EspelhoPontoDTO(funcionario.getNome(), funcionario.getCpf(), funcionario.getEmail(), funcionario.getCargo(), funcionario.getTelefone(), registrosDTO, totalFormatado);
     }
 
 
 //  Método para organizar as regras
+
     private void  validarSequencia(TipoRegistro ultimoTipo, TipoRegistro novoTipo) {
 
 //  Não pode bater o mesmo ponto 2x seguidas
+
         if (ultimoTipo == novoTipo){
             throw new IllegalArgumentException("Não é permitido registrar " + novoTipo + " duas vezes seguidas.");
         }
 
 //  Coerências
+
         if (ultimoTipo == TipoRegistro.ENTRADA && novoTipo == TipoRegistro.FIM_INTERVALO) {
             throw new IllegalArgumentException("Você acabou de entrar, não pode finalizar um intervalo que não começou.");
         }

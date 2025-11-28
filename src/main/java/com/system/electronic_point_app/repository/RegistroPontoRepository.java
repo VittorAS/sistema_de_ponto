@@ -9,6 +9,7 @@ import java.util.List;
 import java.util.Optional;
 
 public interface RegistroPontoRepository extends JpaRepository<RegistroPonto, Long> {
+//  Busca pelo ultimo registro de ponto do funcionário!
     @Query("SELECT r FROM RegistroPonto r WHERE r.funcionario.id = :funcionarioId ORDER BY r.dataHora DESC LIMIT 1")
     Optional<RegistroPonto> buscarUltimoRegistro(@Param("funcionarioId")  Long funcionarioId);
 
